@@ -1,1 +1,4 @@
 detectiveDEE.ai
+*.fasta.*
+*.fasta
+.DS_STORE

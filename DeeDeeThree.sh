@@ -9,12 +9,14 @@ gene_in="${4-Rv0678}"
 # Name file
 nm="${R1/_R1_001.fastq.gz/}"
 
+# download fasta
+curl --silent "https://www.ncbi.nlm.nih.gov/sviewer/viewer.cgi?tool=portal&save=file&log$=seqview&db=nuccore&report=fasta&id=448814763&&ncbi_phid=CE8DF97C4D5B3E710000000000300026" > ref.fasta
 # static
-ref="path to reference fasta"
+ref="ref.fasta"
 
 # Create a reference index for alignment using bwa
 # since using only you own, this will already be done, but you can try make it look for the reference and then make it if it doesnt exist if you want. Otherwise it would remake it each time and overwrite files etc. (human genome take hours to index)
-#bwa index ${ref}
+bwa index ${ref}
 
 
 # Alignment pipeline
