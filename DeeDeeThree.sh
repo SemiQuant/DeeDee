@@ -4,6 +4,7 @@
 R1="$1"
 R2="$2"
 threads="${3-6}"
+gene_in="${4-Rv0678}"
 
 # Name file
 nm="${R1/_R1_001.fastq.gz/}"
@@ -22,7 +23,7 @@ fastqc -t $threads "$R1" -o "${nm}_R1_fastqc"  # Quality control analysis on R1
 fastqc -t $threads "$R2" -o "${nm}_R2_fastqc"  # Quality control analysis on R2
 
 # Align R1 and R2 to the reference using bwa mem and save the output as a SAM file
-bwa mem -t $threads 'name of reference' "$R1" "$R2" > "${nm}.sam"
+bwa mem -t $threads "$ref" "$R1" "$R2" > "${nm}.sam"
 
 # Convert and sort SAM to BAM
 samtools view -bS "${nm}.sam" | 
@@ -32,14 +33,16 @@ samtools view -bS "${nm}.sam" |
 samtools index "${nm}.bam"
 
 # Cleanup intermediate files (uncomment if needed)
-# rm "${nm}.sam"
+rm "${nm}.sam"
 
 # Print completion message
 echo "Alignment pipeline completed."
 
-
 # Visualization command
-samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c <chromosome> -s <start_position> -e <end_position> -t <plot_type>
+
+# this should be pulled based on the gene name, so read in the gff file, and get the info
+
+samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c <chromosome> -s <start_position> -e <end_position> -t "DEL"
 
 # Exit the script
 exit 0
