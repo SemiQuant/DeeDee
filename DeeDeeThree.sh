@@ -1,10 +1,30 @@
 #!/bin/bash
 
-# Define input files
+# Description:
+# This script aligns paired-end sequencing reads against a given reference and produces a visualization using samplot.
+#
+# Usage:
+# ./script_name.sh <R1_fastq> <R2_fastq> <chromosome> <start_position> <end_position>
+#
+# Requirements:
+# - FastQC
+# - BWA
+# - SAMtools
+# - samplot
+
+# Check if the required number of arguments are provided
+if [ "$#" -ne 5 ]; then
+    echo "Error: Incorrect number of arguments."
+    echo "Usage: $0 <R1_fastq> <R2_fastq> <chromosome> <start_position> <end_position>"
+    exit 1
+fi
+
+# Assign command-line arguments to variables
 R1="$1"
 R2="$2"
-threads="${3-6}"
-gene_in="${4-Rv0678}"
+chromosome="$3"
+start_position="$4"
+end_position="$5"
 
 # Name file
 nm="${R1/_R1_001.fastq.gz/}"
