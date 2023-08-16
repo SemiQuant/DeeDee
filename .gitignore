@@ -2,3 +2,7 @@ detectiveDEE.ai
 *.fasta.*
 *.fasta
 .DS_STORE
+*.fasta.amb
+*.fasta.ann
+*.fasta.pac
+*.fasta.sa

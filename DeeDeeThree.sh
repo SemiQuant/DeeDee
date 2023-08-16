@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Description:
-# This script aligns paired-end sequencing reads against a given reference and produces a visualization using samplot.
+# This script aligns paired-end sequencing reads against of your H37Rv deletion mutant a given reference and produces a visualization using samplot.
 #
 # Usage:
-# ./script_name.sh <R1_fastq> <R2_fastq> <chromosome> <start_position> <end_position>
+# ./DeeDeeThree.sh <R1_fastq> <R2_fastq> <chromosome> <start_position> <end_position>
 #
 # Requirements:
 # - FastQC
@@ -18,6 +18,8 @@ if [ "$#" -ne 5 ]; then
     echo "Usage: $0 <R1_fastq> <R2_fastq> <chromosome> <start_position> <end_position>"
     exit 1
 fi
+
+threads=6 
 
 # Assign command-line arguments to variables
 R1="$1"
