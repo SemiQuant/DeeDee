@@ -66,7 +66,9 @@ echo "Alignment pipeline completed."
 
 # this should be pulled based on the gene name, so read in the gff file, and get the info
 
-samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c <chromosome> -s <start_position> -e <end_position> -t "DEL"
+samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c "$chromosome" -s "$start_position" -e "$end_position" -t "DEL"
 
 # Exit the script
 exit 0
+
+
