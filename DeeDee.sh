@@ -1,48 +1,59 @@
 #!/bin/bash
-
-# Define input files
-R1="$1"
-R2="$2"
-threads="${3-6}"
+export PATH=$PATH:/home/semiquant/miniconda3/bin/
+outdir="$1"
+cd "$outdir"
+ref="/var/www/html/scripts/deedee/refs/${3-Mycobacterium_tuberculosis_H37Rv_genome_v4.fasta}"
 gene_in="${4-Rv0678}"
+threads="4"
+gff="/var/www/html/scripts/deedee/refs/${ref/_genome_v4.fasta/_gff_v4.gff}"
+start="none"
+start=$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $4}')
 
-# Name file
-nm="${R1/_R1_001.fastq.gz/}"
-
-# static
-ref="path to reference fasta"
+if [[ "$start" =~ ^[0-9]+$ ]]; then
+  end=$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $5}')
+  chr==$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $1}')
+else
+  echo "Cant find input gene: $gene_in"
+  echo "Available genes for reference are:"
+  awk -F';Name=' '{print $1}' "$gff" | awk '{print $8}'
+  exit 1
+fi
 
 # Create a reference index for alignment using bwa
 # since using only you own, this will already be done, but you can try make it look for the reference and then make it if it doesnt exist if you want. Otherwise it would remake it each time and overwrite files etc. (human genome take hours to index)
 #bwa index ${ref}
 
 
-# Alignment pipeline
-fastqc -t $threads "$R1" -o "${nm}_R1_fastqc"  # Quality control analysis on R1
-# tee "${nm}_R1_fastqc.log" |  # Save FastQC log
-fastqc -t $threads "$R2" -o "${nm}_R2_fastqc"  # Quality control analysis on R2
+for R1 in $(ls -1 | grep -E '^.+_[Rr][1].*\.fastq\.gz$')
+  do
+    R2="${R1/_R1_/_R2_}"; R2="${R1/_r1_/_r2_}"
+    nm="${read_F/.*/}"
+    nm="$(basename $nm)"
+   
+    # Alignment pipeline
+    fastqc -t $threads "$R1" -o "${nm}_R1_fastqc"  # Quality control analysis on R1
+    fastqc -t $threads "$R2" -o "${nm}_R2_fastqc"  # Quality control analysis on R2
+   
+    # Align R1 and R2 to the reference using bwa mem and save the output as a SAM file
+    bwa mem -t $threads "$ref" "$R1" "$R2" > "${nm}.sam"
 
-# Align R1 and R2 to the reference using bwa mem and save the output as a SAM file
-bwa mem -t $threads "$ref" "$R1" "$R2" > "${nm}.sam"
+    # Convert and sort SAM to BAM
+    samtools view -bS "${nm}.sam" | samtools sort -@ $threads -o "${nm}.bam"
 
-# Convert and sort SAM to BAM
-samtools view -bS "${nm}.sam" | 
-    samtools sort -@ $threads -o "${nm}.bam"
+    # Index BAM file for visualization and analysis
+    samtools index "${nm}.bam"
 
-# Index BAM file for visualization and analysis
-samtools index "${nm}.bam"
+    samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c "$chr" -s $((start - 1000)) -e $((end + 1000)) -t "DEL"
 
-# Cleanup intermediate files (uncomment if needed)
-rm "${nm}.sam"
+    # Cleanup intermediate files
+    rm "$R1" "$R2" "${nm}.sam"
+done
 
-# Print completion message
-echo "Alignment pipeline completed."
+email="$2"
+/var/www/html/scripts/upload_to_user.sh "$outdir" "DeeDee" "$email"
 
-# Visualization command
-
-# this should be pulled based on the gene name, so read in the gff file, and get the info
-
-samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c <chromosome> -s <start_position> -e <end_position> -t "DEL"
-
-# Exit the script
 exit 0
+
+
+
+
