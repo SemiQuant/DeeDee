@@ -21,24 +21,44 @@ fi
 
 threads=6 
 
+
+cd "$in_dir"
+
+for R1 in c()
+do 
+    nm="${R1/_R1_001.fastq.gz/}"
+    R2=${R1/R1/R2}
+    echo "${nm}.png" 
+    sleep 5
+done
 # Assign command-line arguments to variables
-R1="$1"
-R2="$2"
+
 chromosome="$3"
 start_position="$4"
 end_position="$5"
 
+
+
+
+
 # Name file
 nm="${R1/_R1_001.fastq.gz/}"
 
+# dowload gff file
+
+# could find coordinates automatically using 
+awk -v gene="YOUR_GENE_NAME" '$3 == "gene" && $9 ~ gene {print $1, $4, $5}' H37Rv.gff
+
+# read gff file called H37Rv.gff
+
 # download fasta
-curl --silent "https://www.ncbi.nlm.nih.gov/sviewer/viewer.cgi?tool=portal&save=file&log$=seqview&db=nuccore&report=fasta&id=448814763&&ncbi_phid=CE8DF97C4D5B3E710000000000300026" > ref.fasta
+# curl --silent "https://www.ncbi.nlm.nih.gov/sviewer/viewer.cgi?tool=portal&save=file&log$=seqview&db=nuccore&report=fasta&id=448814763&&ncbi_phid=CE8DF97C4D5B3E710000000000300026" > ref.fasta
 # static
-ref="ref.fasta"
+ref="$6"
 
 # Create a reference index for alignment using bwa
 # since using only you own, this will already be done, but you can try make it look for the reference and then make it if it doesnt exist if you want. Otherwise it would remake it each time and overwrite files etc. (human genome take hours to index)
-bwa index ${ref}
+# bwa index ${ref}
 
 
 # Alignment pipeline
@@ -66,9 +86,13 @@ echo "Alignment pipeline completed."
 
 # this should be pulled based on the gene name, so read in the gff file, and get the info
 
-samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c "$chromosome" -s "$start_position" -e "$end_position" -t "DEL"
+samplot plot -n "$nm" -b "${nm}.bam" -o "${nm}.png" -c "$chromosome" -s "$(( start_position - 1000 ))" -e "$end_position" -t "DEL"
 
 # Exit the script
+
+
+
+
+done
+
 exit 0
-
-
