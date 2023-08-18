@@ -5,13 +5,15 @@ cd "$outdir"
 ref="/var/www/html/scripts/deedee/refs/${3-Mycobacterium_tuberculosis_H37Rv_genome_v4.fasta}"
 gene_in="${4-Rv0678}"
 threads="4"
-gff="/var/www/html/scripts/deedee/refs/${ref/_genome_v4.fasta/_gff_v4.gff}"
+gff="${ref/_genome_v4.fasta/_gff_v4.gff}"
+
 start="none"
-start=$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $4}')
+line=$(grep -i -E "Locus=$gene_in|Name=$gene_in;" "$gff")
+start=$(echo "$line" | awk -F '\t' '{print $4}')
 
 if [[ "$start" =~ ^[0-9]+$ ]]; then
-  end=$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $5}')
-  chr==$(grep -i "\tLocus=$gene_in;" "$gff" | awk '{print $1}')
+  end=$(echo "$line" | awk -F '\t' '{print $5}')
+  chr=$(echo "$line" | awk -F '\t' '{print $1}')
 else
   echo "Cant find input gene: $gene_in"
   echo "Available genes for reference are:"
@@ -27,12 +29,12 @@ fi
 for R1 in $(ls -1 | grep -E '^.+_[Rr][1].*\.fastq\.gz$')
   do
     R2="${R1/_R1_/_R2_}"; R2="${R1/_r1_/_r2_}"
-    nm="${read_F/.*/}"
-    nm="$(basename $nm)"
+    nm="${R1/.*/}"
+    # nm="$(basename $nm)"
    
     # Alignment pipeline
-    fastqc -t $threads "$R1" -o "${nm}_R1_fastqc"  # Quality control analysis on R1
-    fastqc -t $threads "$R2" -o "${nm}_R2_fastqc"  # Quality control analysis on R2
+    fastqc -t $threads "$R1"
+    fastqc -t $threads "$R2"
    
     # Align R1 and R2 to the reference using bwa mem and save the output as a SAM file
     bwa mem -t $threads "$ref" "$R1" "$R2" > "${nm}.sam"
